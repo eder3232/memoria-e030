@@ -1,0 +1,36 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  DATOS FICTICIOS — esta carpeta es pública y se sube a GitHub.
+#  Los datos reales van en input/proyecto.yaml (ignorado por git y bloqueado
+#  por el hook pre-commit). Copia este archivo como punto de partida.
+# ─────────────────────────────────────────────────────────────────────────────
+
+proyecto:
+  nombre: "Edificio Multifamiliar Los Ejemplos"
+  ubicacion: "Av. Siempre Viva 742, distrito de San Ejemplo, Lima"
+  entidad: "Municipalidad Distrital de San Ejemplo"
+  contratista: "Constructora Ficticia S.A.C."
+  especialistas:
+    - rol: "Especialista en estructuras"
+      nombre: "Ing. Fulano de Tal"
+      cip: "000000"
+    - rol: "Revisor"
+      nombre: "Ing. Mengana Pérez"
+      cip: "000001"
+  fecha: "2026-10-25"
+
+parametros:
+  zona: 4                 # Art. 10: 1, 2, 3, 4
+  suelo: S1               # Art. 12: S0, S1, S2, S3
+  categoria: C            # Art. 15: A2, B, C
+  sistema: concreto_muros # Art. 18, ver COEF_R0 en src/memoria_e030/norma/e030.py
+  I_a: 1.0                # Art. 20, irregularidad en altura
+  I_p: 1.0                # Art. 20, irregularidad en planta
+  C_T: 60                 # Art. 28.4.1: 35, 45, 60
+
+# De abajo hacia arriba. h = altura de entrepiso (m); CM y CV en tonf.
+pisos:
+  - { nivel: 1, h: 3.00, CM: 285.0, CV: 60.0 }
+  - { nivel: 2, h: 2.70, CM: 270.0, CV: 60.0 }
+  - { nivel: 3, h: 2.70, CM: 270.0, CV: 60.0 }
+  - { nivel: 4, h: 2.70, CM: 270.0, CV: 60.0 }
+  - { nivel: 5, h: 2.70, CM: 230.0, CV: 30.0, azotea: true }

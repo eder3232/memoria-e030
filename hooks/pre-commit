@@ -1,0 +1,18 @@
+#!/bin/sh
+# Bloquea commits que incluyan datos reales o entregables generados.
+# Se activa una vez por clon con:  git config core.hooksPath hooks
+#
+# .gitignore evita que se agreguen por accidente; este hook evita además
+# `git add -f`. Lo que entra al historial de git se queda ahí para siempre.
+
+prohibidos=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '^(input|output)/')
+
+if [ -n "$prohibidos" ]; then
+    echo "✋ Commit bloqueado: estos archivos contienen datos confidenciales del proyecto:"
+    echo "$prohibidos" | sed 's/^/     /'
+    echo
+    echo "   Los datos reales viven en input/ y las salidas en output/; ninguno se sube."
+    echo "   Para compartir un caso, crea datos ficticios en input_example/."
+    echo "   Quítalos del área de preparación con:  git restore --staged <archivo>"
+    exit 1
+fi

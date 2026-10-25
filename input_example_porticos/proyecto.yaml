@@ -1,0 +1,43 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  DATOS FICTICIOS — carpeta pública.
+#  Edificio flexible de pórticos: aquí GOBIERNA el mínimo C/R ≥ 0.11 (Art. 28.2.1).
+#  Es el caso de la demo: si alguien quita ese mínimo, el cortante baja y
+#  el diseño queda del lado inseguro.
+# ─────────────────────────────────────────────────────────────────────────────
+
+proyecto:
+  nombre: "Torre de Oficinas El Ejemplo"
+  ubicacion: "Av. Ficticia 1234, distrito de San Ejemplo, Lima"
+  entidad: "Municipalidad Distrital de San Ejemplo"
+  contratista: "Constructora Ficticia S.A.C."
+  especialistas:
+    - rol: "Especialista en estructuras"
+      nombre: "Ing. Fulano de Tal"
+      cip: "000000"
+  fecha: "2026-10-25"
+
+parametros:
+  zona: 4
+  suelo: S1
+  categoria: C
+  sistema: concreto_porticos
+  I_a: 1.0
+  I_p: 1.0
+  C_T: 35
+
+# De abajo hacia arriba. h = altura de entrepiso (m); CM y CV en tonf.
+pisos:
+  - { nivel: 1,  h: 3.50, CM: 420.0, CV: 100.0 }
+  - { nivel: 2,  h: 3.00, CM: 400.0, CV: 100.0 }
+  - { nivel: 3,  h: 3.00, CM: 400.0, CV: 100.0 }
+  - { nivel: 4,  h: 3.00, CM: 400.0, CV: 100.0 }
+  - { nivel: 5,  h: 3.00, CM: 400.0, CV: 100.0 }
+  - { nivel: 6,  h: 3.00, CM: 400.0, CV: 100.0 }
+  - { nivel: 7,  h: 3.00, CM: 400.0, CV: 100.0 }
+  - { nivel: 8,  h: 3.00, CM: 400.0, CV: 100.0 }
+  - { nivel: 9,  h: 3.00, CM: 400.0, CV: 100.0 }
+  - { nivel: 10, h: 3.00, CM: 400.0, CV: 100.0 }
+  - { nivel: 11, h: 3.00, CM: 400.0, CV: 100.0 }
+  - { nivel: 12, h: 3.00, CM: 400.0, CV: 100.0 }
+  - { nivel: 13, h: 3.00, CM: 400.0, CV: 100.0 }
+  - { nivel: 14, h: 3.00, CM: 340.0, CV: 50.0, azotea: true }
