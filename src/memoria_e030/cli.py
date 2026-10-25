@@ -14,8 +14,9 @@ from .salidas import excel, pdf
 
 
 def main(argv=None) -> int:
-    if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8")
+    for flujo in (sys.stdout, sys.stderr):
+        if hasattr(flujo, "reconfigure"):
+            flujo.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(prog="memoria", description="Memoria de cálculo E.030 — análisis estático")
     ap.add_argument("--input", required=True, help="carpeta con proyecto.yaml (input/ o input_example/)")
     ap.add_argument("--output", default="output", help="carpeta de salida (por defecto output/, ignorada por git)")
