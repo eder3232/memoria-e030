@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mismo entregable, distinta confianza</title>
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<style>
+:root {
+  --fondo: #0d1015;
+  --fondo-2: #161b23;
+  --borde: #2a3240;
+  --texto: #e8ecf2;
+  --tenue: #8a94a6;
+  --ambar: #f5b83d;
+  --rojo: #ff5d5d;
+  --verde: #3fcf7a;
+  --azul: #5b9dff;
+  --papel: #f6f4ef;
+  --tinta: #1d2430;
+  --sans: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --mono: "Cascadia Code", "JetBrains Mono", Consolas, "SF Mono", monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: #000; overflow: hidden; }
+body { font-family: var(--sans); color: var(--texto); }
+
+/* Escenario fijo 1600×900 que se escala a la ventana */
+#escenario {
+  position: absolute; top: 50%; left: 50%;
+  width: 1600px; height: 900px;
+  transform-origin: center center;
+  background: var(--fondo);
+  overflow: hidden;
+}
+.slide {
+  position: absolute; inset: 0;
+  padding: 90px 120px;
+  display: flex; flex-direction: column; justify-content: center;
+  opacity: 0; visibility: hidden;
+  transition: opacity .45s ease, visibility .45s;
+}
+.slide.activa { opacity: 1; visibility: visible; }
+.slide.negro { background: #000; }
+.slide.papel { background: var(--papel); color: var(--tinta); }
+.slide.centro { align-items: center; text-align: center; }
+
+/* Fragmentos */
+.f { opacity: 0; transform: translateY(14px); transition: opacity .4s ease, transform .4s ease; }
+.f.on { opacity: 1; transform: none; }
+.texto { color: var(--texto); }
+
+/* Tipografía */
+.kicker { font-size: 22px; letter-spacing: .14em; text-transform: uppercase; color: var(--ambar); font-weight: 600; margin-bottom: 26px; }
+h1 { font-size: 104px; line-height: 1.02; font-weight: 750; letter-spacing: -.02em; }
+h2 { font-size: 64px; line-height: 1.08; font-weight: 700; letter-spacing: -.015em; margin-bottom: 40px; }
+h3 { font-size: 30px; font-weight: 650; margin-bottom: 12px; }
+p, li { font-size: 32px; line-height: 1.4; }
+.grande { font-size: 58px; line-height: 1.2; font-weight: 600; }
+.enorme { font-size: 220px; font-weight: 800; line-height: 1; letter-spacing: -.04em; }
+.tenue { color: var(--tenue); }
+.ambar { color: var(--ambar); }
+.rojo { color: var(--rojo); }
+.verde { color: var(--verde); }
+.azul { color: var(--azul); }
+.mono { font-family: var(--mono); }
+.pie { position: absolute; left: 120px; right: 120px; bottom: 42px; font-size: 18px; color: var(--tenue); display: flex; justify-content: space-between; }
+.chip { display: inline-block; font-size: 17px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 6px 14px; border-radius: 999px; border: 1.5px solid currentColor; }
+.espacio { height: 34px; }
+
+/* Rejillas y tarjetas */
+.fila { display: flex; gap: 36px; }
+.col { flex: 1; min-width: 0; }
+.tarjeta { background: var(--fondo-2); border: 1px solid var(--borde); border-radius: 18px; padding: 30px 32px; }
+.tarjeta p { font-size: 25px; color: var(--tenue); }
+.tarjeta .num { font-size: 20px; font-weight: 700; color: var(--ambar); letter-spacing: .1em; margin-bottom: 14px; }
+.papel .tarjeta { background: #fff; border-color: #ddd8cc; }
+.papel .tarjeta p { color: #5b6473; }
+
+/* Terminal */
+.terminal { background: #0a0c10; border: 1px solid var(--borde); border-radius: 14px; overflow: hidden; font-family: var(--mono); font-size: 22px; line-height: 1.5; }
+.terminal .barra { background: #1a1f28; padding: 10px 16px; display: flex; gap: 8px; align-items: center; color: var(--tenue); font-size: 16px; }
+.terminal .barra i { width: 12px; height: 12px; border-radius: 50%; background: #3a4150; display: inline-block; }
+.terminal pre { padding: 22px 26px; white-space: pre-wrap; font-family: inherit; }
+.terminal .cmd { color: var(--azul); }
+.terminal .err { color: var(--rojo); }
+.terminal .ok { color: var(--verde); }
+.terminal .dim { color: #6b7385; }
+
+/* Escena del Excel */
+.xl { position: relative; background: #fff; color: #222; border-radius: 10px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,.6); font-family: "Segoe UI", Arial, sans-serif; }
+.xl .titulo { background: #1e7145; color: #fff; padding: 10px 18px; font-size: 18px; display: flex; justify-content: space-between; }
+.xl table { border-collapse: collapse; width: 100%; font-size: 22px; }
+.xl th { background: #f2f2f2; color: #555; font-weight: 600; border: 1px solid #d4d4d4; padding: 8px 12px; text-align: left; }
+.xl td { border: 1px solid #e1e1e1; padding: 9px 12px; }
+.xl td.n { text-align: right; font-variant-numeric: tabular-nums; }
+.xl tr.marcada td { background: #ffe1e1; transition: background .4s; }
+.xl .pestanas { display: flex; background: #f2f2f2; border-top: 1px solid #d4d4d4; font-size: 17px; }
+.xl .pestanas span { padding: 8px 20px; border-right: 1px solid #d4d4d4; color: #555; }
+.xl .pestanas .activa-x { background: #fff; color: #1e7145; font-weight: 700; border-bottom: 3px solid #1e7145; }
+.xl .pestanas .oculta { color: var(--rojo); font-style: italic; }
+.globo { position: absolute; background: var(--rojo); color: #fff; font-size: 26px; font-weight: 650; padding: 14px 22px; border-radius: 12px; box-shadow: 0 16px 40px rgba(0,0,0,.45); white-space: nowrap; }
+.globo::before { content: ""; position: absolute; left: -12px; top: 50%; margin-top: -12px; border: 12px solid transparent; border-right-color: var(--rojo); border-left: 0; }
+.ficha { position: absolute; right: -20px; top: 380px; width: 560px; background: #fffdf5; color: #222; border: 3px solid var(--rojo); border-radius: 14px; padding: 26px 30px; box-shadow: 0 30px 80px rgba(0,0,0,.6); transform: rotate(2deg); }
+.ficha.f { transform: rotate(2deg) translateX(60px); }
+.ficha.f.on { transform: rotate(2deg); }
+.ficha dt { font-size: 16px; text-transform: uppercase; letter-spacing: .08em; color: #8a6d00; margin-top: 12px; }
+.ficha dd { font-size: 25px; font-weight: 650; }
+.todo { font-size: 17px; color: var(--rojo); border: 1.5px dashed var(--rojo); padding: 6px 12px; border-radius: 8px; display: inline-block; }
+
+/* Fórmulas */
+.formula { font-size: 44px; }
+.katex { font-size: 1.1em; }
+.papel .katex-display { margin: 0; }
+.celda-excel { font-family: var(--mono); font-size: 30px; background: #fff; color: #222; border: 2px solid #1e7145; border-radius: 6px; padding: 18px 22px; word-break: break-all; }
+.fx { display: flex; gap: 14px; align-items: center; font-family: var(--mono); color: var(--tenue); font-size: 22px; margin-bottom: 14px; }
+.fx b { font-style: italic; color: #1e7145; font-family: Georgia, serif; font-size: 26px; }
+
+/* Diagrama de rutas */
+.ruta { display: flex; align-items: center; gap: 14px; flex-wrap: nowrap; }
+.paso { background: var(--fondo-2); border: 1px solid var(--borde); border-radius: 12px; padding: 14px 18px; font-size: 22px; white-space: nowrap; }
+.flecha { color: var(--tenue); font-size: 26px; }
+.paso.final { border-color: var(--verde); color: var(--verde); font-weight: 650; }
+.paso.malo { border-color: #5a3434; }
+
+/* Portadas */
+.portada { height: 560px; border-radius: 6px; box-shadow: 0 24px 60px rgba(0,0,0,.5); background: #fff; }
+
+/* Tabla de carpetas */
+.carpetas { width: 100%; border-collapse: collapse; font-size: 26px; }
+.carpetas td { padding: 14px 16px; border-bottom: 1px solid var(--borde); }
+.carpetas td:first-child { font-family: var(--mono); color: var(--azul); width: 280px; }
+.carpetas td:last-child { text-align: right; font-weight: 650; width: 180px; }
+
+/* Interfaz del presentador */
+#progreso { position: fixed; left: 0; bottom: 0; height: 4px; background: var(--ambar); transition: width .3s; z-index: 5; }
+#contador { position: fixed; right: 18px; bottom: 12px; font: 13px var(--mono); color: #556; z-index: 5; }
+#notas { position: fixed; left: 0; right: 0; bottom: 0; max-height: 42vh; overflow: auto; background: rgba(10,12,16,.96); border-top: 2px solid var(--ambar); color: #dfe4ec; font-size: 19px; line-height: 1.55; padding: 18px 28px 28px; display: none; z-index: 6; white-space: pre-wrap; }
+#notas.visible { display: block; }
+#notas b { color: var(--ambar); }
+#ayuda { position: fixed; left: 18px; bottom: 12px; font: 13px var(--mono); color: #556; z-index: 5; }
+
+/* Impresión: todas las diapositivas, con sus fragmentos visibles */
+@media print {
+  @page { size: 1600px 900px; margin: 0; }
+  html, body { overflow: visible; height: auto; width: 1600px; background: #000; }
+  #escenario { position: static; transform: none !important; width: auto; height: auto; overflow: visible; background: none; }
+  .slide { position: relative; width: 1600px; height: 900px; opacity: 1; visibility: visible; page-break-after: always; break-after: page; background: var(--fondo); }
+  .slide.negro { background: #000; }
+  .slide.papel { background: var(--papel); }
+  .f { opacity: 1 !important; transform: none !important; }
+  #progreso, #contador, #notas, #ayuda { display: none !important; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+<div id="escenario">
+
+<!-- ═══════════════════════════ PORTADA ═══════════════════════════ -->
+<section class="slide" data-notas="Esperar a que la sala se acomode. No explicar el título todavía: se entiende al final.">
+  <div class="kicker">Memorias de cálculo como proyecto de software</div>
+  <h1>Mismo entregable,<br><span class="ambar">distinta confianza.</span></h1>
+  <div class="espacio"></div>
+  <p class="tenue">Un caso de estudio con la Norma E.030 Diseño Sismorresistente</p>
+  <div class="pie"><span>[Tu nombre] · [Evento] · 2026</span><span>github.com/[usuario]/memoria-e030</span></div>
+</section>
+
+<!-- ═══════════════════════════ GANCHO ═══════════════════════════ -->
+<section class="slide negro centro" data-notas="«Levanten la mano los que alguna vez le pidieron su Excel a un colega.»
+(pausa)
+→ siguiente: «Ahora levanten la mano los que lo recibieron.»
+(pausa larga, dejar que se rían)">
+  <p class="grande">Levanten la mano los que alguna vez<br>le pidieron su Excel a un colega.</p>
+  <div class="espacio"></div>
+  <p class="grande ambar f">¿Y los que lo recibieron?</p>
+</section>
+
+<section class="slide negro" data-notas="«Los ingenieros no comparten sus Excel. ¿Por qué será?»
+Leer cada opción con tono irónico. En la última: «…que está en la norma, gratis, publicada en El Peruano». Esperar la risa.">
+  <h2>¿Por qué los ingenieros<br>no comparten sus Excel?</h2>
+  <p class="f tenue">¿Celos profesionales?</p>
+  <p class="f tenue">¿Porque les costó años armarlo?</p>
+  <p class="f tenue">¿Por miedo a que les copien <span class="texto">V = ZUCS/R · P</span>…</p>
+  <p class="f tenue" style="padding-left:40px">…que está en la norma, gratis, publicada en El Peruano?</p>
+</section>
+
+<section class="slide negro centro" data-notas="Silencio de un par de segundos antes de avanzar. Decirlo seco: «No.»">
+  <div class="enorme rojo">No.</div>
+</section>
+
+<section class="slide negro" style="justify-content:flex-start; padding-top:80px" data-notas="«Seamos honestos. Es porque si me pasas tu Excel, también me pasas esto.»
+→ cemento: «Cemento a cincuenta soles. En la ferretería de la esquina está a veintiocho.»
+→ cartel: «Un cartel de obra de cinco mil soles. Una gigantografía con dos palos.»
+→ ficha: «Y ahí está todo: a qué entidad se presentó, qué empresa lo presentó, y con nombre y número de colegiatura, quién firmó.»
+ANTES DE PRESENTAR: reemplazar la nota al pie con la fuente y fecha real del precio del cemento.">
+  <p class="tenue" style="margin:-10px 0 28px">Seamos honestos. Si me pasas tu Excel, también me pasas <span class="texto">esto</span>:</p>
+  <div style="position:relative">
+    <div class="xl" style="width:860px">
+      <div class="titulo"><span>EXPEDIENTE_TECNICO_FINAL_v7_ahora_si.xlsx</span><span>Excel</span></div>
+      <table>
+        <tr><th style="width:52%">Insumo / Partida</th><th>Und.</th><th>Cant.</th><th class="n">P. U. (S/)</th></tr>
+        <tr><td>Arena gruesa</td><td>m³</td><td class="n">0.52</td><td class="n">65.00</td></tr>
+        <tr id="fila-cemento"><td>Cemento Portland Tipo I (42.5 kg)</td><td>bls</td><td class="n">9.73</td><td class="n"><b>50.00</b></td></tr>
+        <tr><td>Piedra chancada 1/2"</td><td>m³</td><td class="n">0.53</td><td class="n">70.00</td></tr>
+        <tr><td>Agua</td><td>m³</td><td class="n">0.18</td><td class="n">5.00</td></tr>
+        <tr id="fila-cartel"><td>Cartel de obra 3.60 × 7.20 m</td><td>und</td><td class="n">1.00</td><td class="n"><b>5,000.00</b></td></tr>
+        <tr><td>Movilización y desmovilización</td><td>glb</td><td class="n">1.00</td><td class="n">…</td></tr>
+      </table>
+      <div class="pestanas"><span>Memoria</span><span>Metrados</span><span>Presupuesto</span><span class="activa-x">APU</span><span class="oculta">Hoja2 (oculta)</span></div>
+    </div>
+    <div class="globo f" data-marca="fila-cemento" style="left:890px; top:118px">S/ 50 la bolsa. En ferretería: ~S/ 28*</div>
+    <div class="globo f" data-marca="fila-cartel" style="left:890px; top:302px">Una gigantografía con dos palos.</div>
+    <dl class="ficha f">
+      <dt>Entidad</dt><dd>Municipalidad Distrital de San Ejemplo</dd>
+      <dt>Contratista</dt><dd>Constructora Ficticia S.A.C.</dd>
+      <dt>Especialista estructural</dt><dd>Ing. Fulano de Tal — CIP 000000</dd>
+    </dl>
+  </div>
+  <div class="pie"><span class="todo">* Completar fuente y fecha del precio antes de presentar</span><span>Datos ficticios</span></div>
+</section>
+
+<section class="slide negro centro" data-notas="Lento. «Ese Excel no es una memoria de cálculo.» (pausa) «Es una declaración jurada… con fórmulas.»">
+  <p class="grande">Ese Excel no es una memoria de cálculo.</p>
+  <div class="espacio"></div>
+  <p class="grande rojo f">Es una declaración jurada… con fórmulas.</p>
+</section>
+
+<section class="slide negro centro" data-notas="Casi en voz baja. Dejar dos segundos de silencio antes de pasar.">
+  <p class="grande tenue">Por eso no se comparte.</p>
+</section>
+
+<section class="slide papel centro" data-notas="Cambio de tono: la pantalla se limpia.
+«Pero fíjense en algo. Nada de lo que vieron es ingeniería.»
+→ «El precio del cemento, la empresa, la entidad, los nombres… son datos.»
+→ «La ingeniería es esto. Y esto no tiene nada que esconder.»">
+  <div class="formula" data-tex="V = \dfrac{Z \cdot U \cdot C \cdot S}{R} \cdot P" style="font-size:64px"></div>
+  <div class="espacio"></div>
+  <p class="f">Nada de lo que vieron es ingeniería.</p>
+  <p class="f">El precio, la empresa, la entidad, los nombres… <b>son datos</b>.</p>
+  <p class="f"><b>La ingeniería es esto. Y esto no tiene nada que esconder.</b></p>
+</section>
+
+<section class="slide negro centro" data-notas="«No digo que todos.» → «Pero al que no tiene nada que esconder, hoy le voy a quitar la última excusa.»
+Este matiz da credibilidad: no es una acusación al gremio.">
+  <p class="grande tenue">No digo que todos.</p>
+  <div class="espacio"></div>
+  <p class="grande f">Pero al que no tiene nada que esconder,<br><span class="ambar">hoy le quito la última excusa.</span></p>
+</section>
+
+<!-- ═══════════════════════════ PROBLEMA ═══════════════════════════ -->
+<section class="slide" data-notas="Recorrer los cinco rápido; todos los han vivido. Detenerse en el 1: «terminas un trabajo, vuelves seis meses después y ya no sabes qué fórmula modificaste ni por qué.»">
+  <div class="kicker">El problema</div>
+  <h2>Los cinco dolores del Excel artesanal</h2>
+  <div class="fila">
+    <div class="col tarjeta f"><div class="num">01</div><h3>Sin versiones</h3><p>¿Qué fórmula cambiaste hace seis meses, y por qué?</p></div>
+    <div class="col tarjeta f"><div class="num">02</div><h3>Sin pruebas</h3><p>Un error de tipeo vive en todos los proyectos que copian ese archivo.</p></div>
+    <div class="col tarjeta f"><div class="num">03</div><h3>Fórmulas opacas</h3><p class="mono" style="font-size:21px">=B3*B4*B7*B5/B9*B12</p></div>
+    <div class="col tarjeta f"><div class="num">04</div><h3>Revisar es tortura</h3><p>Tu mejor colega tarda horas siguiendo celdas.</p></div>
+    <div class="col tarjeta f"><div class="num">05</div><h3>No se comparte</h3><p>Los datos y el cálculo viven en el mismo archivo.</p></div>
+  </div>
+</section>
+
+<section class="slide centro" data-notas="La tesis. Desactiva la objeción «yo ya trabajo en Excel y me va bien»: nadie les pide dejar de entregar Excel.">
+  <p class="grande">Excel no es el problema.</p>
+  <div class="espacio"></div>
+  <p class="grande ambar f">El problema es usarlo como código fuente.</p>
+  <div class="espacio"></div>
+  <p class="tenue f">Que sea el entregable, no el lugar donde se piensa.</p>
+</section>
+
+<section class="slide" data-notas="Las dos rutas terminan en el MISMO archivo .xlsx, con fórmulas y todo. La entidad no nota la diferencia. Tú sí.">
+  <div class="kicker">Dos formas de llegar al mismo archivo</div>
+  <h2>Mismo .xlsx, distinto origen</h2>
+  <h3 class="tenue">Ruta A — empezar en Excel</h3>
+  <div class="ruta">
+    <div class="paso malo">Excel del proyecto anterior</div><span class="flecha">→</span>
+    <div class="paso malo">Ajustar fórmulas a mano</div><span class="flecha">→</span>
+    <div class="paso malo">«Ya lo revisé»</div><span class="flecha">→</span>
+    <div class="paso final">memoria.xlsx</div>
+  </div>
+  <div class="espacio"></div>
+  <h3 class="ambar f">Ruta B — empezar en un proyecto</h3>
+  <div class="ruta f">
+    <div class="paso">Norma (PDF)</div><span class="flecha">→</span>
+    <div class="paso">Funciones puras</div><span class="flecha">→</span>
+    <div class="paso">Pruebas</div><span class="flecha">→</span>
+    <div class="paso">Cálculo</div><span class="flecha">→</span>
+    <div class="paso final">memoria.xlsx</div><span class="flecha">+</span>
+    <div class="paso final">memoria.pdf</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ FUNCIONALIDADES ═══════════════════════════ -->
+<section class="slide" data-notas="Primera funcionalidad, y la respuesta directa al gancho. No es una flag mágica: es una decisión de arquitectura. El motor no sabe nada del proyecto; los datos están en una carpeta aparte.">
+  <div class="kicker">Funcionalidad 1</div>
+  <h2>Separar el motor de los datos</h2>
+  <div class="fila">
+    <div class="col">
+      <table class="carpetas">
+        <tr><td>src/</td><td>El motor: funciones de la norma</td><td class="verde">público</td></tr>
+        <tr><td>tests/</td><td>Pruebas</td><td class="verde">público</td></tr>
+        <tr><td>input_example/</td><td>Proyecto ficticio completo</td><td class="verde">público</td></tr>
+        <tr class="f"><td>input/</td><td>Tu proyecto real</td><td class="rojo">privado</td></tr>
+        <tr class="f"><td>output/</td><td>Entregables generados</td><td class="rojo">privado</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="espacio"></div>
+  <div class="terminal f"><div class="barra"><i></i><i></i><i></i> terminal</div>
+<pre><span class="cmd">$ uv run memoria --input input_example</span>   <span class="dim"># se comparte en GitHub</span>
+<span class="cmd">$ uv run memoria --input input</span>           <span class="dim"># tu proyecto real, nunca sale de tu PC</span></pre></div>
+</section>
+
+<section class="slide" data-notas="Esto es salida real del hook. Lo que entra al historial de git se queda ahí aunque lo borres después; por eso se bloquea antes de entrar, incluso con git add -f.">
+  <div class="kicker">Funcionalidad 1 — protección</div>
+  <h2>Ni por accidente</h2>
+  <div class="terminal"><div class="barra"><i></i><i></i><i></i> git commit</div>
+<pre><span class="cmd">$ git add -f input/proyecto.yaml</span>
+<span class="cmd">$ git commit -m "avance"</span>
+<span class="err">✋ Commit bloqueado: estos archivos contienen datos confidenciales del proyecto:
+     input/proyecto.yaml</span>
+
+   Los datos reales viven en input/ y las salidas en output/; ninguno se sube.
+   Para compartir un caso, crea datos ficticios en input_example/.</pre></div>
+  <div class="espacio"></div>
+  <p class="tenue f">Y el Excel generado tiene como autor <span class="mono texto">memoria-e030</span>, no tu usuario de Windows.</p>
+</section>
+
+<section class="slide papel" data-notas="La diapositiva clave. Mismo cálculo, mismo resultado. Preguntar a la sala: «¿Cuál revisarías?»
+La derecha la genera handcalcs a partir del mismo código que calcula; no está escrita a mano.">
+  <div class="kicker" style="color:#9a6a00">El mismo cálculo</div>
+  <h2>¿Cuál revisarías?</h2>
+  <div class="fx"><b>fx</b> Hoja1!F17</div>
+  <div class="fila" style="align-items:center">
+    <div class="celda-excel" style="flex:0 0 auto">=0.45*1*2.5*1/6*SUM(F4:F8)</div>
+    <p style="color:#5b6473; font-size:28px">¿De dónde sale 6? ¿Y 2.5?<br>¿Qué hay en F4:F8?</p>
+  </div>
+  <div class="espacio"></div>
+  <div class="tarjeta f">
+    <div style="display:flex; justify-content:space-between; align-items:baseline">
+      <h3>Fuerza cortante en la base</h3>
+      <span style="font-size:20px; color:#7a8290; font-style:italic">E.030-2018, Art. 28.2.1</span>
+    </div>
+    <div class="formula" data-paso="V" style="font-size:31px"></div>
+  </div>
+</section>
+
+<section class="slide" data-notas="Por qué dos salidas. Las entidades exigen el Excel con fórmulas vivas, así que se entrega. Pero para revisar (tú mismo o un colega que quiere ayudarte) la memoria A4 es mucho mejor.">
+  <div class="kicker">Un origen, dos salidas</div>
+  <div class="fila" style="align-items:center; gap:70px">
+    <div class="col">
+      <h3 class="verde">Excel — para la entidad</h3>
+      <p class="tenue" style="font-size:26px">Fórmulas vivas con nombres:</p>
+      <p class="mono" style="font-size:30px; margin:10px 0 18px">=Z*U*C_R*S*P</p>
+      <p class="tenue" style="font-size:26px">Las tablas de la norma van dentro del libro. Sin LAMBDA: funciona en Excel 2016/2019.</p>
+      <div class="espacio"></div>
+      <h3 class="azul f">Memoria A4 — para revisar</h3>
+      <p class="tenue f" style="font-size:26px">Cada paso: descripción, artículo, fórmula, fórmula con números y resultado. Con espacio para la firma.</p>
+    </div>
+    <img class="portada f" src="recursos/portada_registrada.png" alt="Portada de la memoria A4 generada">
+  </div>
+</section>
+
+<section class="slide" data-notas="El Excel tiene sus propias fórmulas, así que podría divergir del Python. Por eso se recalcula y se compara. Si un solo valor no coincide, el archivo se marca RECHAZADO y la memoria no se genera.">
+  <div class="kicker">Garantía</div>
+  <h2>El Excel se verifica contra el motor</h2>
+  <div class="ruta" style="font-size:24px">
+    <div class="paso">Motor (Python)</div><span class="flecha">→</span>
+    <div class="paso">Genera el Excel</div><span class="flecha">→</span>
+    <div class="paso">Lo recalcula</div><span class="flecha">→</span>
+    <div class="paso">Compara celda por celda</div>
+  </div>
+  <div class="espacio"></div>
+  <div class="fila">
+    <div class="col terminal f"><div class="barra"><i></i><i></i><i></i> todo coincide</div>
+<pre><span class="ok">Excel: memoria_e030.xlsx
+(verificación OK, 45 valores coinciden)
+PDF:   memoria_e030.pdf</span></pre></div>
+    <div class="col terminal f"><div class="barra"><i></i><i></i><i></i> algo no coincide</div>
+<pre><span class="err">ERROR: el Excel no coincide con el motor
+Se guardó como memoria_e030.RECHAZADO.xlsx
+No se generó la memoria.</span></pre></div>
+  </div>
+</section>
+
+<section class="slide" data-notas="Cada entregable dice de qué versión exacta del código salió. Si el código tiene cambios sin commit, la memoria sale con marca de agua BORRADOR: no se puede presentar por error una versión a medio editar.">
+  <div class="kicker">Trazabilidad</div>
+  <h2>Cada memoria dice de dónde salió</h2>
+  <div class="fila" style="justify-content:center; gap:80px">
+    <div style="text-align:center"><img class="portada" style="height:520px" src="recursos/portada_borrador.png" alt="Portada con marca de agua BORRADOR"><p class="rojo" style="margin-top:14px; font-size:24px">Código con cambios sin commit</p></div>
+    <div style="text-align:center" class="f"><img class="portada" style="height:520px" src="recursos/portada_registrada.png" alt="Portada registrada con el commit"><p class="verde" style="margin-top:14px; font-size:24px">Versión registrada: <span class="mono" data-m="commit"></span></p></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ DEMO ═══════════════════════════ -->
+<section class="slide negro centro" data-notas="Transición a la demo. Si es en vivo: git switch demo/error-plantado (ver presentacion/DEMO.md). Tener esta secuencia de diapositivas como respaldo.">
+  <div class="kicker">Demo</div>
+  <h1>El error que<br>nadie vio.</h1>
+</section>
+
+<section class="slide" data-notas="Un colega encontró un «caso particular»: en la torre el C/R salía clavado en 0.11 y le pareció alto. Lo «ajustó». Leer el mensaje del commit. Suena razonable, ¿verdad?">
+  <div class="kicker">Seis meses después…</div>
+  <h2>Un «ajuste» razonable</h2>
+  <div class="terminal"><div class="barra"><i></i><i></i><i></i> git log</div>
+<pre><span class="ambar">commit 7a9fbac</span>
+<span class="dim">Date: 2026-10-25</span>
+
+    Ajusta C/R para la torre de oficinas
+
+    En la torre el C/R salía clavado en 0.11 y el cortante parecía alto
+    para un edificio tan flexible. Se usa C/R directo, como en el cálculo
+    anterior del cliente.
+
+<span class="dim">src/memoria_e030/norma/e030.py</span>
+<span class="err">-    return max(C / R, C_R_MINIMO)</span>
+<span class="ok">+    return C / R</span></pre></div>
+</section>
+
+<section class="slide" data-notas="El mínimo de 0.11 está en la norma (Art. 28.2.1) justamente para edificios flexibles. Al quitarlo, el cortante baja más de 6 %: del lado inseguro. En Excel este cambio sería una celda más entre cientos.">
+  <div class="kicker">Torre de pórticos, 14 pisos — datos ficticios</div>
+  <h2>El cortante baja. Del lado inseguro.</h2>
+  <div class="fila">
+    <div class="col tarjeta"><div class="num">CON EL MÍNIMO (NORMA)</div><p class="texto" style="font-size:30px; color:var(--texto)">C/R = 0.110</p><p class="verde" style="font-size:64px; font-weight:750"><span data-m="torre.V" data-d="2"></span> <span style="font-size:30px">tonf</span></p></div>
+    <div class="col tarjeta f"><div class="num" style="color:var(--rojo)">CON EL «AJUSTE»</div><p style="font-size:30px; color:var(--texto)">C/R = <span data-m="torre.C_R_calculado" data-d="3"></span></p><p class="rojo" style="font-size:64px; font-weight:750"><span data-m="torre.V_sin_minimo" data-d="2"></span> <span style="font-size:30px">tonf</span></p></div>
+    <div class="col tarjeta f" style="display:flex; flex-direction:column; justify-content:center; align-items:center"><p class="rojo" style="font-size:96px; font-weight:800" data-m="diferencia"></p><p>menos fuerza sísmica de diseño</p></div>
+  </div>
+</section>
+
+<section class="slide" data-notas="Dos redes de seguridad independientes. Izquierda: las pruebas, que fallan con nombres que explican qué se rompió. Derecha: el Excel generado ya no coincide con el motor y queda RECHAZADO. Ambas salidas son reales.">
+  <div class="kicker">Dos redes de seguridad</div>
+  <h2>Y el error no llega a la entidad</h2>
+  <div class="fila">
+    <div class="col terminal"><div class="barra"><i></i><i></i><i></i> uv run pytest</div>
+<pre style="font-size:18px"><span class="err">FAILED</span> test_torre_de_porticos_gobierna_el_minimo_C_R
+<span class="err">FAILED</span> test_C_R_minimo_gobierna_en_edificio_flexible
+<span class="err">FAILED</span> test_C_R_de_diseno_nunca_es_menor_que_0_11
+<span class="err">FAILED</span> test_excel_coincide_cuando_gobierna_el_minimo_C_R
+<span class="err">FAILED</span> test_la_verificacion_detecta_una_formula_alterada
+<span class="err">5 failed</span>, <span class="ok">42 passed</span></pre></div>
+    <div class="col terminal f"><div class="barra"><i></i><i></i><i></i> uv run memoria --input input_example_porticos</div>
+<pre style="font-size:18px"><span class="err">ERROR: el Excel no coincide con el motor en 30 celdas:
+  Memoria!F15: Excel=0.11     Python=0.1029
+  Memoria!F17: Excel=291.93   Python=273.19
+  …</span>
+Se guardó como memoria_e030.RECHAZADO.xlsx
+para inspección. No se generó la memoria.</pre></div>
+  </div>
+</section>
+
+<section class="slide" data-notas="Y como todo está en git: quién, cuándo y por qué. Seis meses después no hay que adivinar qué fórmula se cambió. La corrección: revertir el commit, o, si el caso particular era real, convertirlo en una prueba con nombre.">
+  <div class="kicker">Seis meses después, sin adivinar</div>
+  <h2>Quién, cuándo y por qué</h2>
+  <div class="terminal"><div class="barra"><i></i><i></i><i></i> git blame</div>
+<pre><span class="cmd">$ git blame -L 111,113 src/memoria_e030/norma/e030.py</span>
+<span class="dim">^624d756 (eder_3232 2026-10-25 111)</span> def cociente_c_r(C, R):
+<span class="dim">^624d756 (eder_3232 2026-10-25 112)</span>     """C/R de diseño, con el mínimo de 0,11. Art. 28.2.1."""
+<span class="ambar">7a9fbac7 (eder_3232 2026-10-25 113)     return C / R</span>
+
+<span class="cmd">$ git revert 7a9fbac</span>   <span class="dim"># y las pruebas vuelven a pasar</span></pre></div>
+</section>
+
+<section class="slide" data-notas="Cada caso particular deja de ser «una fórmula que alguien cambió» y pasa a ser una prueba con nombre. Si alguien lo rompe, el nombre de la prueba dice qué se rompió. Las pruebas se leen casi como la norma.">
+  <div class="kicker">Casos particulares que no se olvidan</div>
+  <h2>Las pruebas se leen como la norma</h2>
+  <div class="terminal"><div class="barra"><i></i><i></i><i></i> tests/</div>
+<pre style="font-size:23px"><span class="ok">✓</span> test_C_es_continuo_en_T_P_y_T_L
+<span class="ok">✓</span> test_C_nunca_crece_con_el_periodo
+<span class="ok">✓</span> test_C_R_minimo_gobierna_en_edificio_flexible
+<span class="ok">✓</span> test_azotea_usa_25_por_ciento_aunque_la_categoria_sea_B
+<span class="ok">✓</span> test_tabla4_T_P_menor_que_T_L_en_todos_los_suelos
+<span class="ok">✓</span> test_la_suma_de_fuerzas_es_el_cortante_basal
+<span class="ok">✓</span> test_caso_ejemplo_contra_calculo_manual
+<span class="ok">✓</span> test_excel_no_contiene_el_usuario_del_sistema
+<span class="dim">… 47 pruebas en 2 segundos</span></pre></div>
+</section>
+
+<!-- ═══════════════════════════ CIERRE ═══════════════════════════ -->
+<section class="slide" data-notas="Lo que cambia al poder compartir. Un colega no revisa todo el Excel de nuevo: revisa el diff, como en un pull request. Y cualquiera puede abrir un issue si encuentra un error en el motor.">
+  <div class="kicker">Lo que se gana al compartir</div>
+  <h2>Revisar solo lo que cambió</h2>
+  <div class="fila">
+    <div class="col tarjeta f"><div class="num">ISSUES</div><h3>Alguien encuentra un error</h3><p>Lo reporta sobre el motor público, con el caso de input_example que lo reproduce.</p></div>
+    <div class="col tarjeta f"><div class="num">PULL REQUESTS</div><h3>Alguien propone una mejora</h3><p>Se revisa el diff y se aprueba solo si las pruebas pasan.</p></div>
+    <div class="col tarjeta f"><div class="num">REVISIÓN</div><h3>Tu colega te ayuda</h3><p>Lee la memoria A4 y el diff, no cientos de celdas.</p></div>
+  </div>
+</section>
+
+<section class="slide" data-notas="Adelantarse a las objeciones antes de que las hagan. Sobre todo la firma: la herramienta no reemplaza el criterio del ingeniero.">
+  <div class="kicker">Límites y objeciones</div>
+  <h2>Lo que esto no resuelve</h2>
+  <ul style="list-style:none">
+    <li class="f"><b class="ambar">La firma sigue siendo tuya.</b> <span class="tenue">La herramienta no reemplaza el criterio del ingeniero.</span></li>
+    <li class="f"><b class="ambar">Hay que aprender algo nuevo.</b> <span class="tenue">Basta una persona por equipo que mantenga el motor; el resto llena datos.</span></li>
+    <li class="f"><b class="ambar">Las normas extranjeras tienen copyright.</b> <span class="tenue">En el repo van citas, no los PDF.</span></li>
+    <li class="f"><b class="ambar">Las tablas transcritas se verifican</b> <span class="tenue">contra el PDF oficial, en un commit con nombre.</span></li>
+    <li class="f"><b class="ambar">No combate la corrupción.</b> <span class="tenue">Quita la excusa para no compartir el cálculo.</span></li>
+  </ul>
+</section>
+
+<section class="slide" data-notas="Cerrar con algo accionable: no hay que migrar la oficina entera. Un cálculo pequeño y frecuente.">
+  <div class="kicker">Cómo empezar mañana</div>
+  <h2>Un cálculo. No toda la oficina.</h2>
+  <div class="fila">
+    <div class="col tarjeta f"><div class="num">1</div><h3>Elige uno pequeño</h3><p>Uno que hagas seguido: cortante basal, una zapata, una viga.</p></div>
+    <div class="col tarjeta f"><div class="num">2</div><h3>Escribe las pruebas primero</h3><p>Con un ejemplo resuelto a mano o de un libro.</p></div>
+    <div class="col tarjeta f"><div class="num">3</div><h3>Genera tu mismo Excel</h3><p>El entregable no cambia; lo que cambia es la confianza.</p></div>
+  </div>
+</section>
+
+<section class="slide negro centro" data-notas="Volver al gancho. «Separamos los datos del cálculo.» (pausa) «¿Y ahora cuál es tu excusa?» Mostrar el repo y abrir preguntas.">
+  <p class="grande tenue">Separamos los datos del cálculo.</p>
+  <div class="espacio"></div>
+  <h1 class="f">¿Y ahora cuál<br>es tu <span class="ambar">excusa</span>?</h1>
+  <div class="pie"><span>github.com/[usuario]/memoria-e030</span><span>Mismo entregable, distinta confianza.</span></div>
+</section>
+
+</div>
+
+<div id="progreso"></div>
+<div id="contador"></div>
+<div id="ayuda">← → avanzar · N notas · F pantalla completa</div>
+<div id="notas"></div>
+
+<script src="vendor/katex/katex.min.js"></script>
+<script src="recursos/memoria.js"></script>
+<script>
+(function () {
+  const M = window.MEMORIA || {};
+  const escenario = document.getElementById("escenario");
+  const slides = [...document.querySelectorAll(".slide")];
+  const notas = document.getElementById("notas");
+  let i = 0, f = 0;
+
+  // Fórmulas: escritas a mano (data-tex) o generadas por el motor (data-paso)
+  if (window.katex) {
+    document.querySelectorAll("[data-tex]").forEach(el =>
+      katex.render(el.dataset.tex, el, { displayMode: true, throwOnError: false }));
+    document.querySelectorAll("[data-paso]").forEach(el => {
+      const tex = (M.pasos || {})[el.dataset.paso];
+      if (tex) katex.render(tex, el, { displayMode: true, throwOnError: false });
+    });
+  }
+
+  // Números generados por presentacion/construir.py
+  const valor = ruta => ruta.split(".").reduce((o, k) => (o == null ? o : o[k]), M);
+  if (M.torre) M.diferencia = `−${(100 * (1 - M.torre.V_sin_minimo / M.torre.V)).toFixed(1)} %`;
+  document.querySelectorAll("[data-m]").forEach(el => {
+    const v = valor(el.dataset.m);
+    if (v == null) return;
+    el.textContent = typeof v === "number" ? v.toFixed(+(el.dataset.d || 2)) : v;
+  });
+
+  const frags = s => [...s.querySelectorAll(".f")];
+
+  function ajustar() {
+    const s = Math.min(innerWidth / 1600, innerHeight / 900);
+    escenario.style.transform = `translate(-50%, -50%) scale(${s})`;
+  }
+
+  function mostrar() {
+    slides.forEach((s, k) => s.classList.toggle("activa", k === i));
+    frags(slides[i]).forEach((el, k) => {
+      el.classList.toggle("on", k < f);
+      // Los globos del Excel marcan su fila
+      if (el.dataset.marca) document.getElementById(el.dataset.marca).classList.toggle("marcada", k < f);
+    });
+    document.getElementById("progreso").style.width = `${100 * (i + 1) / slides.length}%`;
+    document.getElementById("contador").textContent = `${i + 1} / ${slides.length}`;
+    notas.innerHTML = `<b>Diapositiva ${i + 1}</b>\n` + (slides[i].dataset.notas || "").replace(/</g, "&lt;");
+    history.replaceState(null, "", `#${i + 1}`);
+  }
+
+  function siguiente() {
+    if (f < frags(slides[i]).length) f++;
+    else if (i < slides.length - 1) { i++; f = 0; }
+    mostrar();
+  }
+  function anterior() {
+    if (f > 0) f--;
+    else if (i > 0) { i--; f = frags(slides[i]).length; }
+    mostrar();
+  }
+
+  addEventListener("keydown", e => {
+    if (["ArrowRight", "ArrowDown", "PageDown", " ", "Enter"].includes(e.key)) { e.preventDefault(); siguiente(); }
+    else if (["ArrowLeft", "ArrowUp", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); anterior(); }
+    else if (e.key === "Home") { i = 0; f = 0; mostrar(); }
+    else if (e.key === "End") { i = slides.length - 1; f = 0; mostrar(); }
+    else if (e.key === "n" || e.key === "N") notas.classList.toggle("visible");
+    else if (e.key === "f" || e.key === "F") {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen?.();
+    }
+  });
+  escenario.addEventListener("click", siguiente);
+  addEventListener("resize", ajustar);
+
+  const inicial = parseInt(location.hash.slice(1), 10);
+  if (inicial >= 1 && inicial <= slides.length) i = inicial - 1;
+  ajustar();
+  mostrar();
+})();
+</script>
+</body>
+</html>

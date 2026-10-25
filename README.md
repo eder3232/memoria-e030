@@ -94,6 +94,13 @@ Para empezar un proyecto real: copia `input_example/proyecto.yaml` a `input/proy
   Mira la tabla de estado en ese README.
 - La herramienta no reemplaza el criterio ni la firma del ingeniero responsable.
 
+## Presentación
+
+`presentacion/index.html` es la charla que acompaña este piloto: HTML sin dependencias externas
+(KaTeX va incluido en `vendor/`), funciona sin internet. Los números, fórmulas y portadas salen del
+motor con `uv run python presentacion/construir.py`. La demo en vivo usa la rama
+`demo/error-plantado`; el paso a paso está en `presentacion/DEMO.md`.
+
 ## Estructura
 
 ```
@@ -108,6 +115,8 @@ src/memoria_e030/
   cli.py                 uv run memoria
 normas/E030-2018/        transcripción y estado de verificación
 input_example/           proyecto ficticio, público
+input_example_porticos/  torre flexible donde gobierna C/R ≥ 0.11 (caso de la demo)
+presentacion/            la charla (HTML) y el guion de la demo
 hooks/pre-commit         bloquea input/ y output/
 tests/
 ```
