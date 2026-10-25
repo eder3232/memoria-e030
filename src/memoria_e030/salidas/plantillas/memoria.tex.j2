@@ -1,0 +1,174 @@
+((# Plantilla de la memoria A4. Los delimitadores de Jinja están cambiados
+   para no chocar con las llaves de LaTeX (ver pdf.py). #))
+\documentclass[11pt,a4paper]{article}
+\usepackage[spanish,es-nodecimaldot,es-tabla,es-noshorthands]{babel}
+\usepackage{libertinus-otf}
+\usepackage[top=2.6cm,bottom=2.6cm,left=2.5cm,right=2.5cm,headheight=14pt]{geometry}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{booktabs,tabularx,array,float}
+\usepackage{fancyhdr,lastpage}
+\usepackage{titlesec}
+\usepackage[most]{tcolorbox}
+\usepackage[hidelinks]{hyperref}
+((* if traza.es_borrador *))
+\usepackage{draftwatermark}
+\DraftwatermarkOptions{text={BORRADOR},color={red!12},scale=1.1}
+((* endif *))
+
+\definecolor{azul}{HTML}{1F3A5F}
+\definecolor{gris}{HTML}{5B6573}
+\definecolor{suave}{HTML}{EEF1F5}
+
+\hypersetup{pdftitle={Memoria de cálculo E.030 — (((p.nombre|e)))}, pdfauthor={(((p.especialistas[0].nombre|e)))}, pdfcreator={memoria-e030}}
+
+\titleformat{\section}{\Large\bfseries\color{azul}}{\thesection.}{0.6em}{}[\vspace{-0.4em}\textcolor{azul}{\rule{\linewidth}{0.6pt}}]
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.6em}{}
+\newcommand{\referencia}[1]{\hfill{\normalfont\small\itshape\color{gris}#1}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{gris}(((p.nombre|e)))}
+\fancyhead[R]{\small\color{gris}(((norma))) — Análisis estático}
+\fancyfoot[L]{\scriptsize\color{gris}Versión (((traza.version|e))) · (((traza.estado|e)))}
+\fancyfoot[R]{\small Página \thepage\ de \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+\begin{document}
+
+% ─────────────────────────── Portada ───────────────────────────
+\begin{titlepage}
+\color{azul}
+\vspace*{1.5cm}
+{\small\scshape Memoria de cálculo estructural}\\[0.6em]
+{\Huge\bfseries Análisis sísmico estático}\\[0.4em]
+{\Large Norma Técnica (((norma))) Diseño Sismorresistente}
+\color{black}
+
+\vspace{1.5cm}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}p{3.4cm}X@{}}
+Proyecto    & (((p.nombre|e))) \\
+Ubicación   & (((p.ubicacion|e))) \\
+Entidad     & (((p.entidad|e))) \\
+Contratista & (((p.contratista|e))) \\
+Fecha       & (((p.fecha|e))) \\
+\end{tabularx}
+
+\vfill
+\begin{tabularx}{\linewidth}{@{}((* for x in p.especialistas *))>{\centering\arraybackslash}X((* endfor *))@{}}
+((* for x in p.especialistas *))
+\rule{0.8\linewidth}{0.4pt}\newline \textbf{(((x.nombre|e)))}\newline CIP (((x.cip|e)))\newline {\small (((x.rol|e)))}((* if not loop.last *)) &((* endif *))
+((* endfor *))
+\end{tabularx}
+
+\vspace{1.2cm}
+\begin{tcolorbox}[colback=suave,colframe=azul,boxrule=0.5pt,arc=2pt,title=Trazabilidad,fonttitle=\bfseries\small]
+\small
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}p{4.2cm}X@{}}
+Versión del código & \texttt{(((traza.version|e)))} \\
+Estado             & (((traza.estado|e))) \\
+Generado           & (((traza.fecha|e))) \\
+Verificación Excel ↔ Python & (((verificacion|e))) \\
+Reproducir         & \texttt{uv run memoria --input <carpeta>} \\
+\end{tabularx}
+\end{tcolorbox}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ─────────────────────────── Datos ───────────────────────────
+\section{Datos de entrada}
+
+\begin{table}[H]
+\centering\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}llr@{}}
+\toprule
+Parámetro & Referencia & Valor \\
+\midrule
+Zona sísmica & Art. 10 & (((q.zona))) \\
+Perfil de suelo & Art. 12 & (((q.suelo))) \\
+Categoría de la edificación & Art. 15 & (((q.categoria))) \\
+Sistema estructural & Art. 18 & (((q.sistema|e))) \\
+Irregularidad en altura $I_{a}$ & Art. 20 & (((q.I_a|f(2)))) \\
+Irregularidad en planta $I_{p}$ & Art. 20 & (((q.I_p|f(2)))) \\
+Coeficiente $C_{T}$ & Art. 28.4.1 & (((q.C_T))) \\
+\bottomrule
+\end{tabular}
+\caption{Parámetros del análisis}
+\end{table}
+
+\begin{table}[H]
+\centering\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}crrrc@{}}
+\toprule
+Nivel & $h$ entrepiso (m) & $CM$ (tonf) & $CV$ (tonf) & Azotea \\
+\midrule
+((* for x in pisos *))
+(((x.nivel))) & (((x.h|f(2)))) & (((x.CM|f(2)))) & (((x.CV|f(2)))) & ((( "Sí" if x.azotea else "—" ))) \\
+((* endfor *))
+\bottomrule
+\end{tabular}
+\caption{Niveles y cargas por nivel}
+\end{table}
+
+% ─────────────────────────── Cálculo ───────────────────────────
+((* for paso in pasos *))
+((* if paso.seccion *))
+\section{(((paso.seccion)))}
+((* else *))
+\subsection{(((paso.titulo))) \referencia{(((norma))), (((paso.ref)))}}
+((* if paso.texto *))(((paso.texto)))((* endif *))
+
+\[
+(((paso.latex)))
+\]
+((* if paso.destacar *))
+\begin{tcolorbox}[colback=suave,colframe=azul,boxrule=0.8pt,arc=2pt,halign=center]
+\large $\displaystyle (((paso.destacar)))$
+\end{tcolorbox}
+((* endif *))
+((* if paso.tabla_pisos *))
+\begin{table}[H]
+\centering\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}crrrrrr@{}}
+\toprule
+Nivel & $h_{i}$ (m) & $f$ & $P_{i}$ (tonf) & $\alpha_{i}$ & $F_{i}$ (tonf) & $V_{i}$ (tonf) \\
+\midrule
+((* for x in r.pisos|reverse *))
+(((x.nivel))) & (((x.h_i|f(2)))) & (((x.f|f(2)))) & (((x.P_i|f(2)))) & (((x.alfa|f(4)))) & (((x.F_i|f(2)))) & (((x.V_i|f(2)))) \\
+((* endfor *))
+\midrule
+$\Sigma$ & & & (((r.P|f(2)))) & 1.0000 & (((r.V|f(2)))) & \\
+\bottomrule
+\end{tabular}
+\caption{Distribución de la fuerza sísmica en altura ($k = (((r.k|f(3))))$)}
+\end{table}
+((* endif *))
+((* endif *))
+((* endfor *))
+
+% ─────────────────────────── Resumen ───────────────────────────
+\section{Resumen}
+
+\begin{table}[H]
+\centering\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{}lcr@{}}
+\toprule
+Resultado & Símbolo & Valor \\
+\midrule
+Periodo fundamental & $T$ & (((r.T|f(3)))) s \\
+Factor de amplificación & $C$ & (((r.C|f(3)))) \\
+Coeficiente de reducción & $R$ & (((r.R|f(2)))) \\
+Cociente C/R de diseño & $C/R$ & (((r.C_R|f(3))))((* if r.gobierna_minimo_c_r *)) (mínimo)((* endif *)) \\
+Peso sísmico & $P$ & (((r.P|f(2)))) tonf \\
+\textbf{Cortante en la base} & $\mathbf{V}$ & \textbf{(((r.V|f(2)))) tonf} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}
