@@ -1,0 +1,23 @@
+# ── Datos confidenciales: NUNCA se suben ─────────────────────────────────────
+# input/  -> datos reales del proyecto (entidad, empresa, especialistas, cargas)
+# output/ -> los entregables generados llevan esos mismos datos
+# El hook hooks/pre-commit bloquea además cualquier intento de forzarlos.
+input/
+output/
+
+# Normas con derechos de autor (ACI, ASCE, Eurocódigo...): solo citas en el repo
+normas/**/*.pdf
+
+# Python
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.venv
+.pytest_cache/
+.hypothesis/
+
+# Excel abierto (archivo de bloqueo)
+~$*
