@@ -16,7 +16,6 @@ uv run pytest -q                         # 47 passed
 - Abre `presentacion/index.html` en Chrome. **F** pantalla completa, **N** notas del orador,
   flechas o clic para avanzar. `#12` en la URL salta a la diapositiva 12.
 - Deja una terminal abierta en la raíz del repo, con letra grande.
-- Reemplaza la nota al pie del precio del cemento (diapositiva 5) por una fuente y fecha reales.
 
 ## 1. Todo en orden (main)
 
