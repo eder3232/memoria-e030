@@ -110,7 +110,7 @@ def factor_amplificacion(T, T_P, T_L):
 
 def cociente_c_r(C, R):
     """C/R de diseño, con el mínimo de 0,11. Art. 28.2.1."""
-    return max(C / R, C_R_MINIMO)
+    return C / R
 
 
 def peso_piso(CM, CV, f):
