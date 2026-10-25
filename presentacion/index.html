@@ -403,7 +403,7 @@ No se generó la memoria.</span></pre></div>
   <div class="kicker">Seis meses después…</div>
   <h2>Un «ajuste» razonable</h2>
   <div class="terminal"><div class="barra"><i></i><i></i><i></i> git log</div>
-<pre><span class="ambar">commit 7a9fbac</span>
+<pre><span class="ambar">commit 8de03b0</span>
 <span class="dim">Date: 2026-10-25</span>
 
     Ajusta C/R para la torre de oficinas
@@ -455,9 +455,9 @@ para inspección. No se generó la memoria.</pre></div>
 <pre><span class="cmd">$ git blame -L 111,113 src/memoria_e030/norma/e030.py</span>
 <span class="dim">^624d756 (eder_3232 2026-10-25 111)</span> def cociente_c_r(C, R):
 <span class="dim">^624d756 (eder_3232 2026-10-25 112)</span>     """C/R de diseño, con el mínimo de 0,11. Art. 28.2.1."""
-<span class="ambar">7a9fbac7 (eder_3232 2026-10-25 113)     return C / R</span>
+<span class="ambar">8de03b01 (eder_3232 2026-10-25 113)     return C / R</span>
 
-<span class="cmd">$ git revert 7a9fbac</span>   <span class="dim"># y las pruebas vuelven a pasar</span></pre></div>
+<span class="cmd">$ git revert 8de03b0</span>   <span class="dim"># y las pruebas vuelven a pasar</span></pre></div>
 </section>
 
 <section class="slide" data-notas="Cada caso particular deja de ser «una fórmula que alguien cambió» y pasa a ser una prueba con nombre. Si alguien lo rompe, el nombre de la prueba dice qué se rompió. Las pruebas se leen casi como la norma.">

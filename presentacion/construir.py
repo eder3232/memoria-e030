@@ -58,6 +58,7 @@ def main():
         "// Generado por presentacion/construir.py. No editar a mano.\n"
         f"window.MEMORIA = {json.dumps(datos_js, ensure_ascii=False, indent=2)};\n",
         encoding="utf-8",
+        newline="\n",
     )
 
     if shutil.which("pdftoppm") and shutil.which("latexmk"):

@@ -1,6 +1,6 @@
 // Generado por presentacion/construir.py. No editar a mano.
 window.MEMORIA = {
-  "commit": "45dbfa7",
+  "commit": "6d8110e",
   "ejemplo": {
     "Z": 0.45,
     "U": 1.0,
